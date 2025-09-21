@@ -62,7 +62,7 @@ a:hover{border-bottom-color:rgba(225,6,0,.8)}
     <h2>Gate Summary</h2>
     <div>
       {% for g in decision.gate_results %}
-        <div>• {{ g.name }} — <span class="{{ 'pass' if g.passed else 'fail' }}">{{ 'pass' if g.passed else 'fail' }}</span>
+        <div>â€¢ {{ g.name }} â€” <span class="{{ 'pass' if g.passed else 'fail' }}">{{ 'pass' if g.passed else 'fail' }}</span>
         <span style="opacity:.75">({{ g.reason }})</span></div>
       {% endfor %}
     </div>

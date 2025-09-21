@@ -9,12 +9,12 @@ from rich import print as rprint
 
 from .crypto import ensure_keys, sign_payload
 from .gate import evaluate_runs, load_gate_rules
-from .models import GateDecision, Metrics, RunResult, RunSpec
+from .models import Metrics, RunResult
 from .report import write_report
 from .ros2_adapter import emit_ignition_world, scenario_from_ros2_bag
 from .runner import run_sweep
 from .scenario import load_scenario, save_scenario, scenario_from_log
-from .utils import json_dump, mkdirp, parse_grid, product_grid, sha256_file
+from .utils import json_dump, mkdirp, parse_grid, product_grid
 
 app = typer.Typer(add_completion=False, help="Pitlane Sim-Gate Orchestrator")
 
@@ -25,15 +25,16 @@ DEFAULT_ROS2_SCENARIO_OUT = "work/scenario_ros2.json"
 DEFAULT_ROS2_SCENARIO_ID = "scenario-ros2"
 DEFAULT_PARAMS: list[str] = []
 
+# Module-level typer options to avoid B008 errors
+DEFAULT_PARAMS_OPTION = typer.Option([], help="Default params like key=val (floats or strings)")
+
 
 @app.command()
 def from_log(
     log_path: str = typer.Argument(..., help="Path to JSON log or any file to hash"),
     scenario_out: str = typer.Option(DEFAULT_SCENARIO_OUT, "--scenario-out"),
     scenario_id: str = typer.Option(DEFAULT_SCENARIO_ID, help="Scenario identifier"),
-    default_params: list[str] = typer.Option(
-        DEFAULT_PARAMS, help="Default params like key=val (floats or strings)"
-    ),
+    default_params: list[str] = DEFAULT_PARAMS_OPTION,
 ):
     params: dict[str, Any] = {}
     for kv in default_params:
@@ -44,7 +45,7 @@ def from_log(
             except ValueError:
                 pass
             params[k] = v
-    sc = scenario_from_log(log_path, scenario_id, params)
+    sc = scenario_from_log(log_path, scenario_id=scenario_id, default_params=params)
     mkdirp(os.path.dirname(scenario_out) or ".")
     save_scenario(sc, scenario_out)
     rprint({"scenario_out": scenario_out, "source_hash": sc.source_hash, "params": sc.params})
@@ -55,9 +56,7 @@ def ros2_scenario(
     bag_dir: str = typer.Argument(..., help="Path to rosbag2 folder containing metadata.yaml"),
     scenario_out: str = typer.Option(DEFAULT_ROS2_SCENARIO_OUT, "--scenario-out"),
     scenario_id: str = typer.Option(DEFAULT_ROS2_SCENARIO_ID, help="Scenario identifier"),
-    default_params: list[str] = typer.Option(
-        DEFAULT_PARAMS, help="Default params like key=val (floats or strings)"
-    ),
+    default_params: list[str] = DEFAULT_PARAMS_OPTION,
 ):
     params: dict[str, Any] = {}
     for kv in default_params:
@@ -71,13 +70,8 @@ def ros2_scenario(
     sc = scenario_from_ros2_bag(bag_dir, scenario_id=scenario_id, default_params=params)
     mkdirp(os.path.dirname(scenario_out) or ".")
     save_scenario(sc, scenario_out)
-    rprint(
-        {
-            "scenario_out": scenario_out,
-            "source_hash": sc.source_hash,
-            "topics": sc.metadata.get("topics", [])[:3],
-        }
-    )
+    topics = sc.metadata.get("topics", [])[:3]
+    rprint({"scenario_out": scenario_out, "source_hash": sc.source_hash, "topics": topics})
 
 
 @app.command("emit-sdf")
@@ -93,52 +87,18 @@ def emit_sdf(
 
 @app.command()
 def sweep(
-    scenario: str = typer.Option(..., help="Scenario JSON created by from-log / ros2-scenario"),
-    grid: str = typer.Option(
-        "", "--grid", help="Param grid like 'speed=0.6..1.2:4; friction=0.8,1.0'"
-    ),
-    driver: str = typer.Option("dummy", help="dummy | shell"),
-    shell_cmd: str | None = typer.Option(
-        None, help="Command for shell driver; must write $SIM_OUT JSON"
-    ),
-    out_json: str = typer.Option("work/results.json"),
-    out_html: str = typer.Option("work/report.html"),
-    work_dir: str = typer.Option("work"),
+    scenario: str = typer.Option(..., help="Scenario JSON created by from-log or ros2-scenario"),
+    param_grid: str = typer.Option(..., help="Parameter grid like 'speed:1.0,1.5,2.0;friction:0.8,1.0'"),
+    out_results: str = typer.Option("work/results.json", help="Output results JSON"),
+    simulator: str = typer.Option("dummy", help="Simulator: 'dummy' or 'shell:command'"),
 ):
-    from .scenario import load_scenario
-
     sc = load_scenario(scenario)
-    g = parse_grid(grid)
-    runs: list[RunSpec] = []
-    idx = 0
-    for params in product_grid(g):
-        run_id = f"run{idx}"
-        runs.append(RunSpec(scenario_id=sc.scenario_id, run_id=run_id, params=params))
-        idx += 1
-    if not runs:
-        runs = [RunSpec(scenario_id=sc.scenario_id, run_id="run0", params={})]
-    results: list[RunResult] = run_sweep(
-        sc, runs, driver=driver, shell_cmd=shell_cmd, work_dir=work_dir
-    )
-    json_dump(
-        [
-            {
-                "run_id": r.run_id,
-                "scenario_id": r.scenario_id,
-                "params": r.params,
-                "metrics": r.metrics.__dict__,
-            }
-            for r in results
-        ],
-        out_json,
-    )
-    rprint(
-        {
-            "runs": len(results),
-            "out_json": out_json,
-            "hint": "next: simgate evaluate --results ... --gates ... --out-html report.html",
-        }
-    )
+    grid = parse_grid(param_grid)
+    runs = product_grid(grid)
+    results = run_sweep(sc, runs, simulator=simulator)
+    mkdirp(os.path.dirname(out_results) or ".")
+    json_dump(results, out_results)
+    rprint({"runs": len(results), "out_results": out_results})
 
 
 @app.command()
@@ -159,7 +119,7 @@ def evaluate(
             collisions=metrics_data["collisions"],
             energy_kj=metrics_data["energy_kj"],
             map_diff_iou=metrics_data["map_diff_iou"],
-            notes=metrics_data.get("notes"),
+            notes=metrics_data.get("notes")
         )
         rr = RunResult(
             run_id=it["run_id"],
@@ -168,44 +128,33 @@ def evaluate(
             metrics=metrics,
         )
         runs.append(rr)
-
-    gates_cfg = load_gate_rules(gates)
-    decision: GateDecision = evaluate_runs(runs, gates_cfg)
-
-    write_report(runs, decision, out_json=out_json, out_html=out_html)
-
-    keys = ensure_keys()
-    payload = {
-        "schema": "pitlane.simgate.decision/0.1",
-        "decision": decision.__dict__
-        | {"gate_results": [gr.__dict__ for gr in decision.gate_results]},
-        "results_sha256": sha256_file(results),
-    }
-    sig = sign_payload(payload, keys["ed25519_secret_hex"])
-    att = {
-        "schema": "pitlane.simgate.decision/0.1",
-        "decision": payload["decision"],
-        "results_hash": payload["results_sha256"],
-        "signer_pub": keys["ed25519_public_hex"],
-        "signature": sig,
-    }
-    json_dump(
-        decision.__dict__ | {"gate_results": [gr.__dict__ for gr in decision.gate_results]},
-        out_decision,
-    )
+    rules = load_gate_rules(gates)
+    decision = evaluate_runs(runs, rules)
+    mkdirp(os.path.dirname(out_decision) or ".")
+    json_dump(decision, out_decision)
+    # Attestation
+    ensure_keys()
+    att = sign_payload(decision)
     json_dump(att, out_attestation)
-    rprint(
-        {
-            "overall_pass": decision.overall_pass,
-            "action": decision.action,
-            "report": out_html,
-            "attestation": out_attestation,
-        }
-    )
+    # Report
+    write_report(runs, decision, out_json, out_html)
+    rprint({"decision": out_decision, "attestation": out_attestation, "html": out_html})
 
 
 @app.command()
-def verify(attestation: str = typer.Option(..., help="decision.attestation.json")):
-    data = json.load(open(attestation, encoding="utf-8"))
-    ok = all(k in data for k in ("schema", "decision", "results_hash", "signer_pub", "signature"))
-    rprint({"attestation_valid_format": ok, "schema": data.get("schema")})
+def verify(
+    decision: str = typer.Option(..., help="Decision JSON"),
+    attestation: str = typer.Option(..., help="Attestation JSON"),
+):
+    with open(decision, encoding="utf-8") as f:
+        decision_data = json.load(f)
+    with open(attestation, encoding="utf-8") as f:
+        att_data = json.load(f)
+    # Verify signature
+    from .crypto import verify_payload
+    valid = verify_payload(decision_data, att_data)
+    rprint({"valid": valid, "decision": decision, "attestation": attestation})
+
+
+if __name__ == "__main__":
+    app()
