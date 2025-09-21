@@ -1,0 +1,23 @@
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: sqlite3
+  relative_file_paths:
+    - data_0.db3
+  starting_time:
+    nanoseconds: 1620000000000000000
+  duration:
+    nanoseconds: 120000000000
+  message_count: 12345
+  topics_with_message_count:
+    - topic_metadata:
+        name: /odom
+        type: nav_msgs/msg/Odometry
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 2400
+    - topic_metadata:
+        name: /scan
+        type: sensor_msgs/msg/LaserScan
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 3600
