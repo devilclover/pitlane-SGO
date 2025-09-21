@@ -88,7 +88,9 @@ def emit_sdf(
 @app.command()
 def sweep(
     scenario: str = typer.Option(..., help="Scenario JSON created by from-log or ros2-scenario"),
-    param_grid: str = typer.Option(..., help="Parameter grid like 'speed:1.0,1.5,2.0;friction:0.8,1.0'"),
+    param_grid: str = typer.Option(
+        ..., help="Parameter grid like 'speed:1.0,1.5,2.0;friction:0.8,1.0'"
+    ),
     out_results: str = typer.Option("work/results.json", help="Output results JSON"),
     simulator: str = typer.Option("dummy", help="Simulator: 'dummy' or 'shell:command'"),
 ):
