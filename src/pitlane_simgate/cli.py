@@ -121,7 +121,7 @@ def evaluate(
             collisions=metrics_data["collisions"],
             energy_kj=metrics_data["energy_kj"],
             map_diff_iou=metrics_data["map_diff_iou"],
-            notes=metrics_data.get("notes")
+            notes=metrics_data.get("notes"),
         )
         rr = RunResult(
             run_id=it["run_id"],
@@ -154,6 +154,7 @@ def verify(
         att_data = json.load(f)
     # Verify signature
     from .crypto import verify_payload
+
     valid = verify_payload(decision_data, att_data)
     rprint({"valid": valid, "decision": decision, "attestation": attestation})
 
