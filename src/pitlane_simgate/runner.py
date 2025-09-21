@@ -1,20 +1,28 @@
 from __future__ import annotations
-import json, os, subprocess, hashlib, random
-from dataclasses import asdict
-from typing import Dict, Any, List
-from .models import Scenario, RunSpec, RunResult, Metrics
-from .utils import sha256_str
+
+import hashlib
+import json
+import os
+import random
+import subprocess
+from typing import Any
+
+from .models import Metrics, RunResult, RunSpec, Scenario
+
 
 def _deterministic_rng(seed_str: str) -> random.Random:
     # Seed from sha256 hex to int
     seed = int(hashlib.sha256(seed_str.encode("utf-8")).hexdigest(), 16) % (2**32 - 1)
     return random.Random(seed)
 
-def _dummy_simulate(s: Scenario, params: Dict[str, Any]) -> Metrics:
+
+def _dummy_simulate(s: Scenario, params: dict[str, Any]) -> Metrics:
     """
     Deterministic pseudo-sim. Produces plausible metrics from scenario+params hash.
     """
-    key = json.dumps({"scenario": s.scenario_id, "hash": s.source_hash, "params": params}, sort_keys=True)
+    key = json.dumps(
+        {"scenario": s.scenario_id, "hash": s.source_hash, "params": params}, sort_keys=True
+    )
     rng = _deterministic_rng(key)
 
     # Base values
@@ -38,10 +46,11 @@ def _dummy_simulate(s: Scenario, params: Dict[str, Any]) -> Metrics:
         collisions=int(collisions),
         energy_kj=round(energy, 2),
         map_diff_iou=round(max(0.0, min(1.0, iou)), 3),
-        notes="dummy-deterministic"
+        notes="dummy-deterministic",
     )
 
-def _shell_simulate(shell_cmd: str, env: Dict[str, str]) -> Metrics:
+
+def _shell_simulate(shell_cmd: str, env: dict[str, str]) -> Metrics:
     """
     Run user-provided command; it must write JSON metrics to SIM_OUT path.
     """
@@ -52,7 +61,7 @@ def _shell_simulate(shell_cmd: str, env: Dict[str, str]) -> Metrics:
     subprocess.check_call(shell_cmd, shell=True, env={**os.environ, **env})
     if not os.path.exists(sim_out):
         raise RuntimeError("Shell driver did not produce metrics JSON at $SIM_OUT")
-    data = json.load(open(sim_out, "r", encoding="utf-8"))
+    data = json.load(open(sim_out, encoding="utf-8"))
     return Metrics(
         time_to_goal_s=float(data["time_to_goal_s"]),
         collisions=int(data["collisions"]),
@@ -61,15 +70,16 @@ def _shell_simulate(shell_cmd: str, env: Dict[str, str]) -> Metrics:
         notes=data.get("notes"),
     )
 
+
 def run_sweep(
     scenario: Scenario,
-    runs: List[RunSpec],
+    runs: list[RunSpec],
     driver: str = "dummy",
     shell_cmd: str | None = None,
     work_dir: str = "work",
-) -> List[RunResult]:
+) -> list[RunResult]:
     os.makedirs(work_dir, exist_ok=True)
-    results: List[RunResult] = []
+    results: list[RunResult] = []
     for rs in runs:
         if driver == "dummy":
             metrics = _dummy_simulate(scenario, rs.params)
@@ -77,10 +87,18 @@ def run_sweep(
             if not shell_cmd:
                 raise ValueError("shell driver requires --shell-cmd")
             sim_out = os.path.join(work_dir, f"{rs.run_id}.metrics.json")
-            env = {"SIM_SCENARIO_ID": scenario.scenario_id, "SIM_PARAMS": json.dumps(rs.params), "SIM_OUT": sim_out}
+            env = {
+                "SIM_SCENARIO_ID": scenario.scenario_id,
+                "SIM_PARAMS": json.dumps(rs.params),
+                "SIM_OUT": sim_out,
+            }
             metrics = _shell_simulate(shell_cmd, env)
         else:
             raise ValueError(f"unknown driver: {driver}")
 
-        results.append(RunResult(run_id=rs.run_id, scenario_id=rs.scenario_id, params=rs.params, metrics=metrics))
+        results.append(
+            RunResult(
+                run_id=rs.run_id, scenario_id=rs.scenario_id, params=rs.params, metrics=metrics
+            )
+        )
     return results

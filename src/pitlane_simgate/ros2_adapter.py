@@ -1,22 +1,25 @@
 from __future__ import annotations
-import os, json, hashlib
+
+import hashlib
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Any
+
 import yaml
 
 from .models import Scenario
-from .utils import sha256_file
 
-def _load_metadata_yaml(bag_path: str | Path) -> Dict[str, Any]:
+
+def _load_metadata_yaml(bag_path: str | Path) -> dict[str, Any]:
     """Load rosbag2 metadata.yaml from a bag folder (or a direct path to metadata.yaml)."""
     p = Path(bag_path)
     meta_path = p if p.name == "metadata.yaml" else (p / "metadata.yaml")
     if not meta_path.exists():
         raise FileNotFoundError(f"metadata.yaml not found at {meta_path}")
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-def _extract_core(meta: Dict[str, Any]) -> Tuple[float, list[dict]]:
+
+def _extract_core(meta: dict[str, Any]) -> tuple[float, list[dict]]:
     """
     Return (duration_sec, topics_info[ {name,type,count} ]) in a robust way
     for typical rosbag2 metadata structures.
@@ -36,17 +39,20 @@ def _extract_core(meta: Dict[str, Any]) -> Tuple[float, list[dict]]:
     tlist = root.get("topics_with_message_count", [])
     for t in tlist:
         tm = t.get("topic_metadata", {})
-        topics_info.append({
-            "name": tm.get("name", ""),
-            "type": tm.get("type", ""),
-            "count": int(t.get("message_count", 0)),
-        })
+        topics_info.append(
+            {
+                "name": tm.get("name", ""),
+                "type": tm.get("type", ""),
+                "count": int(t.get("message_count", 0)),
+            }
+        )
     return duration_sec, topics_info
+
 
 def scenario_from_ros2_bag(
     bag_dir: str,
     scenario_id: str = "scenario_ros2",
-    default_params: Optional[Dict[str, Any]] = None,
+    default_params: dict[str, Any] | None = None,
 ) -> Scenario:
     """
     Build a Scenario from rosbag2 metadata only (no ROS libs needed).
@@ -94,11 +100,12 @@ def scenario_from_ros2_bag(
         params=params,
     )
 
+
 def emit_ignition_world(
     scenario: Scenario,
     out_sdf: str,
     world_name: str = "pitlane_world",
-    gravity: Tuple[float, float, float] = (0, 0, -9.81),
+    gravity: tuple[float, float, float] = (0, 0, -9.81),
 ) -> None:
     """
     Emit a minimal SDF world that encodes a couple of scenario params as world properties.

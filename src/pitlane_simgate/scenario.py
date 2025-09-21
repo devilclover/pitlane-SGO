@@ -1,18 +1,24 @@
 from __future__ import annotations
-import json, os
-from pathlib import Path
-from typing import Dict, Any
+
+import json
+import os
+from typing import Any
+
 from .models import Scenario
 from .utils import sha256_file
 
-def scenario_from_log(log_path: str, scenario_id: str, default_params: Dict[str, Any]) -> Scenario:
+
+def scenario_from_log(log_path: str, scenario_id: str, default_params: dict[str, Any]) -> Scenario:
     """
     Accepts a JSON log (any structure) or any file; we hash it and store minimal metadata.
     """
     if not os.path.exists(log_path):
         raise FileNotFoundError(log_path)
     h = sha256_file(log_path)
-    meta = {"kind": "json_log" if log_path.lower().endswith(".json") else "blob", "size": os.path.getsize(log_path)}
+    meta = {
+        "kind": "json_log" if log_path.lower().endswith(".json") else "blob",
+        "size": os.path.getsize(log_path),
+    }
     return Scenario(
         scenario_id=scenario_id,
         source_log=os.path.basename(log_path),
@@ -20,6 +26,7 @@ def scenario_from_log(log_path: str, scenario_id: str, default_params: Dict[str,
         metadata=meta,
         params=default_params or {},
     )
+
 
 def save_scenario(s: Scenario, path: str) -> None:
     d = {
@@ -32,8 +39,9 @@ def save_scenario(s: Scenario, path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(d, f, indent=2)
 
+
 def load_scenario(path: str) -> Scenario:
-    d = json.load(open(path, "r", encoding="utf-8"))
+    d = json.load(open(path, encoding="utf-8"))
     return Scenario(
         scenario_id=d["scenario_id"],
         source_log=d["source_log"],

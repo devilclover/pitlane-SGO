@@ -1,21 +1,26 @@
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from typing import Dict, Any, Optional, List
+
+from dataclasses import dataclass
+from typing import Any
+
 from .utils import now_s
+
 
 @dataclass
 class Scenario:
     scenario_id: str
     source_log: str
     source_hash: str
-    metadata: Dict[str, Any]
-    params: Dict[str, Any]
+    metadata: dict[str, Any]
+    params: dict[str, Any]
+
 
 @dataclass
 class RunSpec:
     scenario_id: str
     run_id: str
-    params: Dict[str, Any]
+    params: dict[str, Any]
+
 
 @dataclass
 class Metrics:
@@ -23,14 +28,16 @@ class Metrics:
     collisions: int
     energy_kj: float
     map_diff_iou: float
-    notes: Optional[str] = None
+    notes: str | None = None
+
 
 @dataclass
 class RunResult:
     run_id: str
     scenario_id: str
-    params: Dict[str, Any]
+    params: dict[str, Any]
     metrics: Metrics
+
 
 @dataclass
 class GateRule:
@@ -41,11 +48,13 @@ class GateRule:
     min: Any = None
     max: Any = None
 
+
 @dataclass
 class GateEval:
     name: str
     passed: bool
     reason: str
+
 
 @dataclass
 class GateDecision:
@@ -54,15 +63,16 @@ class GateDecision:
     action: str
     canary_percent: int
     timestamp: int
-    gate_results: List[GateEval]
+    gate_results: list[GateEval]
+
 
 @dataclass
 class Attestation:
     schema: str
     decision: GateDecision
     results_hash: str
-    signer_pub: Optional[str] = None
-    signature: Optional[str] = None
+    signer_pub: str | None = None
+    signature: str | None = None
 
     @staticmethod
     def now() -> int:

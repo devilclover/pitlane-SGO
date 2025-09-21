@@ -1,9 +1,12 @@
 from __future__ import annotations
-from typing import List, Dict, Any
-from dataclasses import asdict
+
 import operator
+from dataclasses import asdict
+from typing import Any
+
 import yaml
-from .models import GateRule, GateEval, GateDecision, RunResult
+
+from .models import GateDecision, GateEval, GateRule, RunResult
 
 OPS = {
     "==": operator.eq,
@@ -14,23 +17,30 @@ OPS = {
     ">=": operator.ge,
 }
 
-def load_gate_rules(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
+
+def load_gate_rules(path: str) -> dict[str, Any]:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-def _eval_rule(rule: GateRule, metrics: Dict[str, Any]) -> GateEval:
+
+def _eval_rule(rule: GateRule, metrics: dict[str, Any]) -> GateEval:
     val = metrics.get(rule.metric)
     if rule.op == "between":
         lo, hi = rule.min, rule.max
         ok = (val is not None) and (lo is not None) and (hi is not None) and (lo <= val <= hi)
-        return GateEval(name=rule.name, passed=bool(ok), reason=f"{rule.metric}={val} between {lo}..{hi}")
+        return GateEval(
+            name=rule.name, passed=bool(ok), reason=f"{rule.metric}={val} between {lo}..{hi}"
+        )
     elif rule.op in OPS:
         ok = OPS[rule.op](val, rule.value)
-        return GateEval(name=rule.name, passed=bool(ok), reason=f"{rule.metric}={val} {rule.op} {rule.value}")
+        return GateEval(
+            name=rule.name, passed=bool(ok), reason=f"{rule.metric}={val} {rule.op} {rule.value}"
+        )
     else:
         return GateEval(name=rule.name, passed=False, reason=f"unknown op {rule.op}")
 
-def evaluate_runs(results: List[RunResult], gates_cfg: Dict[str, Any]) -> GateDecision:
+
+def evaluate_runs(results: list[RunResult], gates_cfg: dict[str, Any]) -> GateDecision:
     gates = [GateRule(**g) for g in gates_cfg.get("gates", [])]
     risk = gates_cfg.get("policy", {}).get("risk", "med")
     promo = gates_cfg.get("policy", {}).get("promotion", {})
@@ -40,7 +50,7 @@ def evaluate_runs(results: List[RunResult], gates_cfg: Dict[str, Any]) -> GateDe
 
     # Aggregate using worst-case across runs (strict)
     gate_pass_all = True
-    evals_agg: List[GateEval] = []
+    evals_agg: list[GateEval] = []
     for g in gates:
         # if any run fails, the gate fails
         ok_runs = []
@@ -56,5 +66,10 @@ def evaluate_runs(results: List[RunResult], gates_cfg: Dict[str, Any]) -> GateDe
 
     action = on_pass if gate_pass_all else on_fail
     return GateDecision(
-        overall_pass=gate_pass_all, risk=risk, action=action, canary_percent=canary, timestamp=__import__("time").time().__int__(), gate_results=evals_agg
+        overall_pass=gate_pass_all,
+        risk=risk,
+        action=action,
+        canary_percent=canary,
+        timestamp=__import__("time").time().__int__(),
+        gate_results=evals_agg,
     )

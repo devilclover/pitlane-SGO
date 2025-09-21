@@ -1,17 +1,24 @@
 from __future__ import annotations
-import json, os, hashlib, random, time
+
+import hashlib
+import json
+import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 BLACK = "#111111"
 PIT_RED = "#E10600"
 WHITE = "#FFFFFF"
 
+
 def now_s() -> int:
     return int(time.time())
 
+
 def sha256_str(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
 
 def sha256_file(path: str) -> str:
     h = hashlib.sha256()
@@ -20,23 +27,27 @@ def sha256_file(path: str) -> str:
             h.update(ch)
     return h.hexdigest()
 
+
 def mkdirp(p: str | Path) -> None:
     Path(p).mkdir(parents=True, exist_ok=True)
+
 
 def json_dump(obj: Any, path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2)
 
+
 def json_load(path: str) -> Any:
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
-def parse_grid(spec: str) -> Dict[str, list]:
+
+def parse_grid(spec: str) -> dict[str, list]:
     """
     Parse grids like:
       "speed=0.6..1.2:4; friction=0.8,1.0"
     """
-    out: Dict[str, list] = {}
+    out: dict[str, list] = {}
     if not spec:
         return out
     for part in [p.strip() for p in spec.split(";") if p.strip()]:
@@ -65,17 +76,20 @@ def parse_grid(spec: str) -> Dict[str, list]:
             out[k] = casted
     return out
 
-def product_grid(grid: Dict[str, list]) -> Iterable[Dict[str, Any]]:
+
+def product_grid(grid: dict[str, list]) -> Iterable[dict[str, Any]]:
     if not grid:
         yield {}
         return
     keys = list(grid.keys())
-    def rec(i: int, acc: Dict[str, Any]):
+
+    def rec(i: int, acc: dict[str, Any]):
         if i == len(keys):
             yield acc.copy()
             return
         k = keys[i]
         for v in grid[k]:
             acc[k] = v
-            yield from rec(i+1, acc)
+            yield from rec(i + 1, acc)
+
     yield from rec(0, {})

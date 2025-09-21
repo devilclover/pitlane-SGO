@@ -2,7 +2,11 @@
 Minimal shell driver example: reads params from $SIM_PARAMS and writes metrics JSON to $SIM_OUT.
 Used by the --driver shell mode. This is a stub you can replace with Ignition/Isaac calls.
 """
-import os, json, random, hashlib
+
+import hashlib
+import json
+import os
+import random
 
 params = json.loads(os.environ.get("SIM_PARAMS", "{}"))
 out = os.environ.get("SIM_OUT")
@@ -18,7 +22,7 @@ metrics = {
     "collisions": 0 if rng.random() > 0.2 else 1,
     "energy_kj": round(rng.uniform(8, 70), 2),
     "map_diff_iou": round(rng.uniform(0.8, 0.97), 3),
-    "notes": "shell-driver-stub"
+    "notes": "shell-driver-stub",
 }
 with open(out, "w", encoding="utf-8") as f:
     json.dump(metrics, f)
