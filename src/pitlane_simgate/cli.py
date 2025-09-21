@@ -18,14 +18,21 @@ from .utils import json_dump, mkdirp, parse_grid, product_grid, sha256_file
 
 app = typer.Typer(add_completion=False, help="Pitlane Sim-Gate Orchestrator")
 
+# Default values for typer options
+DEFAULT_SCENARIO_OUT = "work/scenario.json"
+DEFAULT_SCENARIO_ID = "scenario-1"
+DEFAULT_ROS2_SCENARIO_OUT = "work/scenario_ros2.json"
+DEFAULT_ROS2_SCENARIO_ID = "scenario-ros2"
+DEFAULT_PARAMS: list[str] = []
+
 
 @app.command()
 def from_log(
     log_path: str = typer.Argument(..., help="Path to JSON log or any file to hash"),
-    scenario_out: str = typer.Option("work/scenario.json", "--scenario-out"),
-    scenario_id: str = typer.Option("scenario-1", help="Scenario identifier"),
+    scenario_out: str = typer.Option(DEFAULT_SCENARIO_OUT, "--scenario-out"),
+    scenario_id: str = typer.Option(DEFAULT_SCENARIO_ID, help="Scenario identifier"),
     default_params: list[str] = typer.Option(
-        [], help="Default params like key=val (floats or strings)"
+        DEFAULT_PARAMS, help="Default params like key=val (floats or strings)"
     ),
 ):
     params: dict[str, Any] = {}
@@ -46,10 +53,10 @@ def from_log(
 @app.command("ros2-scenario")
 def ros2_scenario(
     bag_dir: str = typer.Argument(..., help="Path to rosbag2 folder containing metadata.yaml"),
-    scenario_out: str = typer.Option("work/scenario_ros2.json", "--scenario-out"),
-    scenario_id: str = typer.Option("scenario-ros2", help="Scenario identifier"),
+    scenario_out: str = typer.Option(DEFAULT_ROS2_SCENARIO_OUT, "--scenario-out"),
+    scenario_id: str = typer.Option(DEFAULT_ROS2_SCENARIO_ID, help="Scenario identifier"),
     default_params: list[str] = typer.Option(
-        [], help="Default params like key=val (floats or strings)"
+        DEFAULT_PARAMS, help="Default params like key=val (floats or strings)"
     ),
 ):
     params: dict[str, Any] = {}
